@@ -7,7 +7,6 @@ plugins {
 android {
     namespace = "com.example.campus_marketplace_w7"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
