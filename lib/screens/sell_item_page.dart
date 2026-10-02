@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/gemini_vision_service.dart';
+import '../models/listing_draft.dart';
 
 class SellItemPage extends StatefulWidget {
   const SellItemPage({super.key});
@@ -12,6 +14,8 @@ class SellItemPage extends StatefulWidget {
 class _SellItemPageState extends State<SellItemPage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  
+  bool _isAnalyzing = false;
 
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
@@ -22,6 +26,45 @@ class _SellItemPageState extends State<SellItemPage> {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _analyzeImage() async {
+    if (_imageFile == null) return;
+
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    try {
+      final resultMap = await GeminiVisionService().analyzeImage(_imageFile!);
+      final draft = ListingDraft.fromJson(resultMap);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'วิเคราะห์สำเร็จ!\nชื่อ: ${draft.title}\nหมวดหมู่: ${draft.category}\nรายละเอียด: ${draft.description}',
+            ),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาด: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
     }
   }
 
@@ -54,27 +97,32 @@ class _SellItemPageState extends State<SellItemPage> {
               ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: _pickImage,
+              onPressed: _isAnalyzing ? null : _pickImage,
               icon: const Icon(Icons.photo_library),
               label: const Text('เลือกรูปภาพสินค้า'),
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () {
-                // TODO: เชื่อมกับ Gemini ในขั้นตอนต่อไป
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ฟังก์ชัน AI จะมาในเร็วๆ นี้')),
-                );
-              },
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('ให้ AI ช่วยแนะนำ'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple[100],
+            if (_isAnalyzing)
+              Column(
+                children: const [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('AI กำลังวิเคราะห์ภาพสินค้า...', style: TextStyle(color: Colors.grey)),
+                ],
+              )
+            else
+              ElevatedButton.icon(
+                onPressed: _imageFile == null ? null : _analyzeImage,
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text('ให้ AI ช่วยแนะนำ'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple[100],
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
 }
+
