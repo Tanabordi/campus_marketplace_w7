@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/item.dart';
 import '../models/cart_model.dart';
 import '../repositories/item_repository.dart';
+import '../services/gemini_service.dart';
 import 'checkout_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -28,6 +30,33 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Campus Marketplace'),
         actions: [
+          // TODO: ลบปุ่มทดสอบนี้หลังจาก checkpoint 2.1 ผ่านแล้ว
+          IconButton(
+            icon: const Icon(Icons.smart_toy),
+            tooltip: 'ทดสอบ Gemini',
+            onPressed: () async {
+              const prompt =
+                  'ช่วยแต่งประโยคทักทายลูกค้าร้านค้าออนไลน์แบบเป็นกันเอง';
+              print('[GeminiTest] กำลังส่ง prompt: $prompt');
+              try {
+                final result = await GeminiService().generateText(prompt);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result),
+                      duration: const Duration(seconds: 6),
+                    ),
+                  );
+                }
+              } catch (e) {
+                print('[GeminiTest] Error: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            },
+          ),
           IconButton(
             icon: Badge(
               label: Text('${context.watch<CartModel>().itemCount}'),
@@ -73,7 +102,9 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     context.read<CartModel>().add(item);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('เพิ่ม "${item.title}" ลงตะกร้าแล้ว')),
+                      SnackBar(
+                        content: Text('เพิ่ม "${item.title}" ลงตะกร้าแล้ว'),
+                      ),
                     );
                   },
                 ),
