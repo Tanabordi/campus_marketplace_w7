@@ -17,6 +17,18 @@ class _SellItemPageState extends State<SellItemPage> {
   
   bool _isAnalyzing = false;
 
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _categoryController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -41,14 +53,11 @@ class _SellItemPageState extends State<SellItemPage> {
       final draft = ListingDraft.fromJson(resultMap);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'วิเคราะห์สำเร็จ!\nชื่อ: ${draft.title}\nหมวดหมู่: ${draft.category}\nรายละเอียด: ${draft.description}',
-            ),
-            duration: const Duration(seconds: 6),
-          ),
-        );
+        setState(() {
+          _titleController.text = draft.title;
+          _categoryController.text = draft.category;
+          _descController.text = draft.description;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -66,6 +75,19 @@ class _SellItemPageState extends State<SellItemPage> {
         });
       }
     }
+  }
+
+  void _confirmDraft() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('บันทึกร่างประกาศเรียบร้อยแล้ว')),
+    );
+
+    setState(() {
+      _imageFile = null;
+      _titleController.clear();
+      _categoryController.clear();
+      _descController.clear();
+    });
   }
 
   @override
@@ -119,10 +141,52 @@ class _SellItemPageState extends State<SellItemPage> {
                   backgroundColor: Colors.purple[100],
                 ),
               ),
+            const SizedBox(height: 24),
+            
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'รายละเอียดสินค้า',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'ชื่อสินค้า',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _categoryController,
+              decoration: const InputDecoration(
+                labelText: 'หมวดหมู่',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descController,
+              decoration: const InputDecoration(
+                labelText: 'คำอธิบายสินค้า',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _confirmDraft,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('ยืนยันร่างประกาศ', style: TextStyle(fontSize: 16)),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
