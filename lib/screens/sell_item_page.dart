@@ -21,6 +21,17 @@ class _SellItemPageState extends State<SellItemPage> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
 
+  static const String _prompt = '''
+วิเคราะห์รูปภาพนี้และดึงข้อมูลเพื่อนำไปสร้างประกาศขายสินค้า
+ให้ข้อมูลในรูปแบบ JSON ตามนี้เท่านั้น โดยไม่ต้องมีคำอธิบายอื่น:
+{
+  "title": "ชื่อสินค้าที่เหมาะสม",
+  "price": ราคาประเมินเป็นตัวเลข (ถ้าไม่ทราบให้ใส่ 0),
+  "category": "หมวดหมู่สินค้า (เช่น อิเล็กทรอนิกส์, เสื้อผ้า, เครื่องเขียน, ฯลฯ)",
+  "description": "คำอธิบายสินค้าที่น่าสนใจ ความยาวประมาณ 2-3 บรรทัด"
+}
+  ''';
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -49,7 +60,10 @@ class _SellItemPageState extends State<SellItemPage> {
     });
 
     try {
-      final resultMap = await GeminiVisionService().analyzeImage(_imageFile!);
+
+
+      // แก้ไขตรงนี้: ส่ง _prompt เข้าไปด้วย
+      final resultMap = await GeminiVisionService().analyzeImage(_imageFile!, _prompt);
       final draft = ListingDraft.fromJson(resultMap);
 
       if (mounted) {
