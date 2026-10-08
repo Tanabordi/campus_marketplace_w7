@@ -22,7 +22,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomePage(repository: widget.itemRepository),
+      HomePage(repository: widget.itemRepository, favoritesRepository: widget.favoritesRepository),
       const SellItemPage(),
     ];
 
