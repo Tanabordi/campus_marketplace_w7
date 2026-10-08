@@ -28,6 +28,19 @@ import 'package:campus_marketplace_w7/models/item.dart';
 import 'package:campus_marketplace_w7/repositories/item_repository.dart';
 import 'package:campus_marketplace_w7/screens/home_page.dart';
 
+import 'package:campus_marketplace_w7/repositories/favorites_repository_drift.dart';
+import 'package:campus_marketplace_w7/database/app_database.dart';
+
+/// Repository ปลอมสำหรับ Favorites
+class _FakeFavoritesRepository implements FavoritesRepository {
+  @override
+  Future<void> addFavorite(int itemId, String title, double price, String imageUrl) async {}
+  @override
+  Future<List<FavoriteItem>> getAllFavorites() async => [];
+  @override
+  Future<void> removeFavorite(int itemId) async {}
+}
+
 /// Repository ปลอมสำหรับใช้ในการทดสอบนี้เท่านั้น ไม่เรียกเครือข่ายจริง
 /// Future ที่คืนไปจะ "ค้าง" อยู่ตลอด (ไม่มีวัน complete) เพื่อให้ทดสอบจับสถานะ
 /// "กำลังโหลด" (CircularProgressIndicator) ได้แน่นอนทุกครั้งที่รัน
@@ -45,7 +58,10 @@ void main() {
         create: (context) => CartModel(),
         child: MaterialApp(
           title: 'Campus Marketplace',
-          home: HomePage(repository: _FakeItemRepository()),
+          home: HomePage(
+            repository: _FakeItemRepository(),
+            favoritesRepository: _FakeFavoritesRepository(),
+          ),
         ),
       ),
     );

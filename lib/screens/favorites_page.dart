@@ -20,6 +20,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
     _loadFavorites();
   }
 
+  @override
+  void didUpdateWidget(FavoritesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // รีโหลดข้อมูลทุกครั้งที่มีการสลับ Tab แล้วส่ง Widget ตัวใหม่เข้ามา
+    _loadFavorites();
+  }
+
   void _loadFavorites() {
     setState(() {
       _favoritesFuture = widget.repository.getAllFavorites();
