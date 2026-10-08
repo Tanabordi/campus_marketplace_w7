@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/gemini_vision_service.dart';
 import '../models/listing_draft.dart';
+import '../repositories/listing_draft_repository_drift.dart';
 
 class SellItemPage extends StatefulWidget {
-  const SellItemPage({super.key});
+  final ListingDraftRepository draftRepository;
+  const SellItemPage({super.key, required this.draftRepository});
 
   @override
   State<SellItemPage> createState() => _SellItemPageState();
@@ -16,6 +18,7 @@ class _SellItemPageState extends State<SellItemPage> {
   final ImagePicker _picker = ImagePicker();
   
   bool _isAnalyzing = false;
+  bool _isSaving = false;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -91,17 +94,61 @@ class _SellItemPageState extends State<SellItemPage> {
     }
   }
 
-  void _confirmDraft() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('บันทึกร่างประกาศเรียบร้อยแล้ว')),
-    );
+  Future<void> _confirmDraft() async {
+    if (_imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('กรุณาเลือกรูปภาพ'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    if (_titleController.text.isEmpty || _categoryController.text.isEmpty || _descController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('กรุณากรอกข้อมูลให้ครบถ้วน'), backgroundColor: Colors.red),
+      );
+      return;
+    }
 
     setState(() {
-      _imageFile = null;
-      _titleController.clear();
-      _categoryController.clear();
-      _descController.clear();
+      _isSaving = true;
     });
+
+    try {
+      final draft = ListingDraft(
+        title: _titleController.text,
+        category: _categoryController.text,
+        description: _descController.text,
+      );
+
+      await widget.draftRepository.saveDraft(draft, _imageFile!.path);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('บันทึกร่างประกาศเรียบร้อยแล้ว')),
+        );
+
+        setState(() {
+          _imageFile = null;
+          _titleController.clear();
+          _categoryController.clear();
+          _descController.clear();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาดในการบันทึก: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   @override
@@ -189,15 +236,18 @@ class _SellItemPageState extends State<SellItemPage> {
               maxLines: 3,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _confirmDraft,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+            if (_isSaving)
+              const Center(child: CircularProgressIndicator())
+            else
+              ElevatedButton(
+                onPressed: _confirmDraft,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('ยืนยันร่างประกาศ', style: TextStyle(fontSize: 16)),
               ),
-              child: const Text('ยืนยันร่างประกาศ', style: TextStyle(fontSize: 16)),
-            ),
           ],
         ),
       ),
