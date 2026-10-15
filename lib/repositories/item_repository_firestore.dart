@@ -16,7 +16,8 @@ class ItemRepositoryFirestore implements ItemRepository {
 
   // เมธอดเฉพาะของ Firestore เท่านั้น — เรียกตรงจากหน้า Sell/My Listings ไม่ผ่าน Interface
   Future<void> postItem(Item item) async {
-    await _items.add(item.toFirestore());
+    // ใช้ ID เดิมของ Item ในการ set ป้องกันการสร้างเอกสารซ้ำซ้อนเมื่อเกิด Retry
+    await _items.doc(item.id.toString()).set(item.toFirestore());
   }
 
   Stream<List<Item>> watchMyListings(String sellerId) {

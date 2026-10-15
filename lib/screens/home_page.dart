@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,7 +32,13 @@ class _HomePageState extends State<HomePage> {
     final results = await Future.wait(
       widget.repositories.map((repo) => repo.getItems()),
     );
-    return results.expand((list) => list).toList();
+    final allItems = results.expand((list) => list).toList();
+    allItems.sort((a, b) {
+      if (a.sellerId != null && b.sellerId == null) return -1;
+      if (a.sellerId == null && b.sellerId != null) return 1;
+      return 0;
+    });
+    return allItems;
   }
 
   @override
@@ -104,18 +111,27 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
-                leading: Image.network(
-                  item.imageUrl,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.broken_image),
-                ),
+                leading: item.imageUrl.startsWith('data:image')
+                    ? Image.memory(
+                        base64Decode(item.imageUrl.split(',').last),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image),
+                      )
+                    : Image.network(
+                        item.imageUrl,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image),
+                      ),
                 title: Row(
                   children: [
                     Text(
-                      item.category == 'campus' ? '🎓 ' : '🏪 ',
+                      item.sellerId != null ? '🎓 ' : '🏪 ',
                       style: const TextStyle(fontSize: 16),
                     ),
                     Expanded(
