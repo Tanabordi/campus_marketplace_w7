@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/cart_model.dart';
+import 'screens/auth_gate.dart';
 import 'screens/main_scaffold.dart';
 import 'screens/login_page.dart';
 import 'repositories/item_repository_api.dart';
@@ -32,13 +33,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Campus Marketplace',
       debugShowCheckedModeBanner: false,
-      // home: MainScaffold(
-      //   itemRepository: ItemRepositoryApi(),
-      //   favoritesRepository: FavoritesRepositoryDrift(db),
-      //   draftRepository: ListingDraftRepositoryDrift(db),
-      // ),
-      home: const LoginPage(),
+      home: AuthGate(
+        itemRepositories: [ItemRepositoryApi()],
+        favoritesRepository: FavoritesRepositoryDrift(db),
+        draftRepository: ListingDraftRepositoryDrift(db),
+      ),
     );
   }
 }
+
 
