@@ -7,11 +7,16 @@ import '../repositories/favorites_repository_drift.dart';
 import '../repositories/listing_draft_repository_drift.dart';
 
 class MainScaffold extends StatefulWidget {
-  final ItemRepository itemRepository;
+  final List<ItemRepository> itemRepositories;
   final FavoritesRepository favoritesRepository;
   final ListingDraftRepository draftRepository;
 
-  const MainScaffold({super.key, required this.itemRepository, required this.favoritesRepository, required this.draftRepository});
+  const MainScaffold({
+    super.key,
+    required this.itemRepositories,
+    required this.favoritesRepository,
+    required this.draftRepository,
+  });
 
   @override
   State<MainScaffold> createState() => _MainScaffoldState();
@@ -24,7 +29,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     final pages = [
       HomePage(
-        repository: widget.itemRepository,
+        repositories: widget.itemRepositories,
         favoritesRepository: widget.favoritesRepository,
       ),
       SellItemPage(draftRepository: widget.draftRepository),

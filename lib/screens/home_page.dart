@@ -10,9 +10,9 @@ import '../services/gemini_service.dart';
 import 'checkout_page.dart';
 
 class HomePage extends StatefulWidget {
-  final ItemRepository repository;
+  final List<ItemRepository> repositories;
   final FavoritesRepository favoritesRepository;
-  const HomePage({super.key, required this.repository, required this.favoritesRepository});
+  const HomePage({super.key, required this.repositories, required this.favoritesRepository});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,7 +24,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _itemsFuture = widget.repository.getItems();
+    _itemsFuture = _loadAllItems();
+  }
+
+  Future<List<Item>> _loadAllItems() async {
+    final results = await Future.wait(
+      widget.repositories.map((repo) => repo.getItems()),
+    );
+    return results.expand((list) => list).toList();
   }
 
   @override
@@ -105,7 +112,21 @@ class _HomePageState extends State<HomePage> {
                   errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.broken_image),
                 ),
-                title: Text(item.title),
+                title: Row(
+                  children: [
+                    Text(
+                      item.category == 'campus' ? '🎓 ' : '🏪 ',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
                 subtitle: Text('${item.price} บาท'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
