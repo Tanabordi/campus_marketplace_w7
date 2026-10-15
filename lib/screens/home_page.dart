@@ -5,6 +5,7 @@ import '../models/item.dart';
 import '../models/cart_model.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/favorites_repository_drift.dart';
+import '../services/auth_service.dart';
 import '../services/gemini_service.dart';
 import 'checkout_page.dart';
 
@@ -65,9 +66,16 @@ class _HomePageState extends State<HomePage> {
               child: const Icon(Icons.shopping_cart),
             ),
             onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CheckoutPage()),
-            ),
+               context,
+               MaterialPageRoute(builder: (_) => const CheckoutPage()),
+             ),
+           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'ออกจากระบบ',
+            onPressed: () async {
+              await AuthService().signOut();
+            },
           ),
         ],
       ),
